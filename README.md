@@ -2,8 +2,7 @@
 
 ## 教程地址
 
-- 原版 480p：<https://www.bilibili.com/video/BV1fD4y1m7TD>
-- 搬运 1080p：<https://www.bilibili.com/video/BV17T4y1r7LL>
+[Go语言编程快速入门（Golang）（完结）](https://www.bilibili.com/video/BV1fD4y1m7TD)
 
 ## 环境搭建
 
@@ -19,6 +18,19 @@
 1. 安装 `golang.go` 插件
 2. 执行 `>go install/update Tools` 命令
    - 安装目录为 `GOPATH`
+
+#### 定制对 go 后缀文件的操作
+
+```json
+"[go]": {
+  // 不将制表符转换为空格
+  "editor.insertSpaces": false,
+  // 制表符所占大小为 4 个空格的宽度
+  "editor.tabSize": 4,
+  // 设置默认的格式化工具为 goloang.go
+  "editor.defaultFormatter": "golang.go",
+}
+```
 
 ## 创建 go 文件
 
@@ -160,9 +172,11 @@ suzuran is a fox.
 - 可以用 `break` 手动跳出循环
 - 只写一个式子默认为是第二区域的式子
 
-## 实数
+## 类型
 
-### 浮点数
+### 实数
+
+#### 浮点数
 
 - 浮点型默认为 `float64`
 - 32 为单精度（4 字节）；64 为双精度（8 字节）
@@ -209,9 +223,9 @@ false
 true
 ```
 
-### 整数
+#### 整数
 
-#### 十种整数类型（本质是八种）
+##### 十种整数类型（本质是八种）
 
 |Type|Range|Storage|
 |-|-|-|
@@ -281,7 +295,7 @@ color: #008dd5
 -10000000: -128
 ```
 
-#### big 
+##### big 
 
 - 使用 big.Int 进行运算时，等式中的其他部分都必须是 big.Int
 - `NewInt()` 函数可以把 `int64` 转化为 `big.Int` 类型
@@ -321,7 +335,7 @@ $ go run bigPackage.go
 926568346646267
 ```
 
-## 多语言文本
+### 多语言文本
 
 - 字符串字面值：`"\n"`，即可以包含转义。
 - 原始字符串字面值：\`\n\`
@@ -334,7 +348,7 @@ $ go run bigPackage.go
 |byte|uint8 的类型别名，目的是用于二进制数|
 
 
-### 类型别名
+#### 类型别名
 
 `type byte = uint8`
 
@@ -364,7 +378,7 @@ $ go run main.go
 π ά ω !
 ```
 
-### 字符
+#### 字符
 
 ```go
 package main
@@ -384,7 +398,7 @@ $ go run rune.go
 grade: int32 65 A
 ```
 
-### string
+#### string
 
 ```go
 package main
@@ -432,3 +446,118 @@ first rune: 巫, 3 bytes
 ===
 ```
 
+### 类形转换
+
+- 无符号与有符号的整数型之间也需要转换。
+- 不同大小的整数型之间也需要转换。
+- 将整数型转化为字符串型时，如果它的值不能转化为 code point，虽然不会报错，但会輸出乱码。
+- 整数型与布尔型，字符串型与布尔型之间无法互相转换
+
+```go
+package main
+
+import (
+	"fmt"
+	"math"
+	"strconv"
+)
+
+func main() {
+	description := "Shamare is" + "138cm"
+	fmt.Println(description)
+	// 直接连接字符串与数值会报错
+	// description02 := "Shamare is " + 138 + "cm"
+
+	// 整数型与浮点型也不能混合使用
+	pi := math.Pi
+	times := 2
+	// 报错
+	// fmt.Println(pi * times)
+	fmt.Println(pi, times)
+
+	// 类形转换使用目标类型去包裏
+	// 从浮点型转换为整数型时，小数点之后的部分会被截断而不是舍入
+	fmt.Println(int(pi))
+
+	// rune, bype 可以转换成 string，输出结果为该值对应的字符
+	var piItme rune = 960
+	var bang byte = 33
+	fmt.Println(string(piItme), string(bang))
+	// 如果需要直接输出字符串型的数字，需要使用 strconv 包的 Itoa 函数
+	// Itoa: Integer to ASCII
+	description02 := "Shamare is " + strconv.Itoa(138) + "cm"
+	fmt.Println(description02)
+
+	// strconv 包中亦有 Atoi 函数，但需要错误处理
+	text, exception := strconv.Atoi("10")
+
+	if exception != nil {
+		fmt.Println(exception.Error())
+		return
+	}
+
+	fmt.Println(text)
+}
+
+```
+
+```powershell
+$ go run typeChange.go 
+Shamare is138cm
+3.141592653589793 2
+3
+π !
+Shamare is 138cm
+10
+```
+
+### 声明新类型
+
+## 函数
+
+- 大写字母开头的函数、变量或其他标识符被被导出。
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	sleep("Shamare")
+	sleep("Shamare", "Suzuran")
+}
+
+// `...` 表示函数的参数可变；`interface{}` 为空接口，所有类型均可实现
+func sleep(nameList ...interface{}) {
+	length := len(nameList)
+	var name string
+
+	for i := 0; i < length; i++ {
+		name += nameList[i].(string)
+
+		if i != length-1 {
+			name += ", "
+		}
+	}
+
+	beVerb := "is"
+
+	if length > 1 {
+		beVerb = "are"
+	}
+
+	fmt.Printf("%v %v sleeping in my arms.\n", name, beVerb)
+}
+
+```
+
+```powershell
+$ go run parameterChangeableFunction.go 
+Shamare is sleeping in my arms.
+Shamare, Suzuran are sleeping in my arms.
+```
+
+### 方法
+
+- 函数是独立存在的。
+- 方法是属于某一个类型的。
