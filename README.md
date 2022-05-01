@@ -39,7 +39,6 @@
 |后缀|go|
 |编译并运行|go run \<filename\>|
 
-
 ## package & function
 
 ```go
@@ -186,8 +185,8 @@ suzuran is a fox.
 package main
 
 import (
-	"fmt"
-	"math"
+    "fmt"
+    "math"
 )
 
 func main() {
@@ -295,7 +294,7 @@ color: #008dd5
 -10000000: -128
 ```
 
-##### big 
+##### big
 
 - 使用 big.Int 进行运算时，等式中的其他部分都必须是 big.Int
 - `NewInt()` 函数可以把 `int64` 转化为 `big.Int` 类型
@@ -346,7 +345,6 @@ $ go run bigPackage.go
 |code point|Unicode 联盟为超过 100 万个字符分配了相应的数值，这个数叫作 code point|
 |rune|为了表示 unicode code point，go 语言提供的 int32 的类型别名|
 |byte|uint8 的类型别名，目的是用于二进制数|
-
 
 #### 类型别名
 
@@ -513,6 +511,9 @@ Shamare is 138cm
 
 ### 声明新类型
 
+- 可以使用 `type` 关键字来声明类型。
+- 自定义类型可以提高代码可读性。
+
 ## 函数
 
 - 大写字母开头的函数、变量或其他标识符被被导出。
@@ -560,4 +561,83 @@ Shamare, Suzuran are sleeping in my arms.
 ### 方法
 
 - 函数是独立存在的。
-- 方法是属于某一个类型的。
+- 方法是指与类型相关联的函数。
+
+```go
+package main
+
+import "fmt"
+
+// 定义类型
+type operator string
+
+// 将方法关联到类型
+func (loli operator) sleep() {
+	fmt.Printf("%v is sleeping in my arms.\n", loli)
+}
+
+func main() {
+	var loli operator = "Shamare"
+	// 使用关联后的方法
+	loli.sleep()
+}
+
+```
+
+```powershell
+$ go run method.go 
+Shamare is sleeping in my arms.
+```
+
+### 声明函数类型
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	var sleep sleep = func(name string) {
+		fmt.Printf("%v is sleeping in my arms.\n", name)
+	}
+
+	sleep("Shamare")
+}
+
+// 声明函数类型
+type sleep func(name string)
+
+```
+
+```powershell
+$ go run functionType.go 
+Shamare is sleeping in my arms.
+```
+
+### 闭包
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	count := 0
+
+	visitCount := func() int {
+		return count
+	}
+
+	fmt.Println(visitCount()) // 0
+
+	count++
+	fmt.Println(visitCount()) // 1
+}
+
+```
+
+```powershell
+$ go run closure.go 
+0
+1
+```
