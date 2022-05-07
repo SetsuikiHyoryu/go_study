@@ -911,4 +911,194 @@ Supporter: 2
 
 ## 结构类型
 
+### 声明结构体
 
+结构体的复制会创建副本
+
+#### 直接声明结构体
+
+```go
+var shamare struct {
+    name string
+    height int
+}
+
+// 可以直接赋值
+shamare.name = "Shamare"
+
+// 使用复合字面值声明
+var suzuran struct {
+    name: "Suzuran",
+    height: 137
+}
+```
+
+#### 以类型的方式声明
+
+```go
+type operator struct {
+    name string
+    height int
+}
+
+var shamare operator
+var suzuran operator
+```
+
+### 将结构体编码为 JSON
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
+
+func main() {
+	// 要转换成 JSON 时属性名必须大写，否则属性不能导出
+	type operator struct {
+		// 自定义 JSON 输出时的格式
+		Name   string `json:"name"`
+		Height int    `json:"height"`
+	}
+
+	shamare := operator{Name: "Shamare", Height: 138}
+
+	bytes, exception := json.Marshal(shamare)
+	handleError(exception)
+
+	fmt.Println(shamare)
+	fmt.Println(bytes)
+	fmt.Println(string(bytes))
+}
+
+func handleError(exception error) {
+	if exception == nil {
+		return
+	}
+
+	fmt.Println(exception)
+	// 退出程序
+	os.Exit(1)
+}
+```
+
+```powershell
+$ go run toJSON.go 
+{Shamare 138}
+[123 34 78 97 109 101 34 58 34 83 104 97 109 97 114 101 34 44 34 72 101 105 103 
+104 116 34 58 49 51 56 125]
+{"name":"Shamare","height":138}
+```
+
+### 关联方法至结构体
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	shamare := operator{name: "Shamare", height: 138}
+	fmt.Println(shamare.getHeight())
+}
+
+type operator struct {
+	name   string
+	height int
+}
+
+func (unit operator) getHeight() int {
+	return unit.height
+}
+
+```
+
+```powershell
+$ go run structWithMethod.go
+138
+```
+
+### 结构体的嵌入（embedded）
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	shamare := operator{name: "Shamare", height: 138}
+	fmt.Println(shamare.getHeight())
+	fmt.Println(shamare.height.getHeight())
+}
+
+type operator struct {
+	name
+	height
+}
+
+type name string
+type height int
+
+func (_height height) getHeight() height {
+	return _height
+}
+
+```
+
+```powershell
+$ go run embedded.go 
+138
+138
+```
+
+## 接口
+
+- go 语言中不需要显示声明接口。
+- 命名规范为结尾加 `er`。
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	shamare := operator{name: "Shamare"}
+	// 因为构造体中的字段实现了 operatorer 接口，所以构造体的实例也就实现了接口
+	printName(shamare)
+}
+
+type operatorer interface {
+	getName() name
+}
+
+// 需要传入实现了接口的参数
+func printName(unit operatorer) {
+	fmt.Println(unit.getName())
+}
+
+type operator struct {
+	// 使用嵌入的方式定义构造体
+	name
+}
+
+type name string
+
+func (_name name) getName() name {
+	return _name
+}
+
+```
+
+```powershell
+$ go run main.go 
+Shamare
+```
+
+## 指针
+
+- `&` 是地址操作符，通过 `&` 可以获取变量的内存地址。
+  - 无法获得字符串、数值、布尔值的字面值的地址。
+- `*` 可以解引用，提供内存地址指向的值。
