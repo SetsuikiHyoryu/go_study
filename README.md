@@ -641,3 +641,274 @@ $ go run closure.go
 0
 1
 ```
+
+## 数组
+
+```go
+// 一个长度为 8 的字符串类型数组
+var planets [8]string
+```
+
+### 使用复合字面值初始化数组
+
+- 复合字面值是一种给复合类型初始化的紧凑语法。
+- 仅用一步即可完成数组声明和数组初始化。
+
+```go
+// 使用 `...` 作为长度可以让编译器自动算出长度
+operators := [...]string{"Shamare", "Suzuran", "April"}
+```
+
+### 遍历数组
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	operators := [...]string{"Shamare", "Suzuran", "April"}
+
+	// 也可以使用传统的三段式
+	for index, operator := range operators {
+		fmt.Println(index, operator)
+	}
+}
+
+
+```
+
+```powershell
+$ go run iterate.go
+0 Shamare
+1 Suzuran
+2 April
+```
+
+### 数组的复制
+
+数组的赋值与传值会生成一个新的副本，而不是传递一个引用。
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	operators := [...]string{"Shamare", "Suzuran", "April"}
+	operators02 := operators
+
+	operators[2] = "Rope"
+
+	fmt.Println(operators)
+	fmt.Println(operators02)
+}
+
+```
+
+```powershell
+$ go run copy.go 
+[Shamare Suzuran Rope]
+[Shamare Suzuran April]
+```
+
+## 切片
+
+- 切片是指向数组的窗口
+- 可以切分字符串
+  - 切分字节数而不是符文
+
+```go
+operators := [3]string
+// 这就是一个切片，它表示了数组中前 2 个元素
+// 索引不可以为负数
+operators[0:2]
+```
+
+### 忽略索引
+
+```go
+operators := [3]string
+
+// 忽略起始表示从数组的起始位置切分
+ignoreStart := operators[:2]
+// 忽略结速表示以数组的长度为结束位置
+ignoreEnd := operators[1:]
+// 同时省略二者表示包含数组的所有元素
+ignoreDouble := operator[:]
+```
+
+### 切片的复合字面值
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	operators := [...]string{"Shamare", "Suzuran"}
+	operatorsSlice := operators[:]
+
+	operatorsSlice2 := []string{"Shamare", "Suzuran"}
+
+	fmt.Println(operatorsSlice)
+	fmt.Println(operatorsSlice2)
+	fmt.Printf("%T %T\n", operators, operatorsSlice2)
+}
+
+```
+
+```powershell
+$ go run literal.go 
+[Shamare Suzuran]
+[Shamare Suzuran]
+[2]string []string
+```
+
+### append 函数
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	operators := []string{"Suzuran"}
+	operators = append(operators, "Shamare")
+	fmt.Println(operators)
+}
+
+```
+
+```powershell
+$ go run append.go
+[Suzuran Shamare]
+```
+
+### 容量
+
+容量就是切片所对应的底层数组的长度
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	operators := []string{"Shamare", "Suzuran"}
+	dump("operators", operators)
+	dump("operators[:1]", operators[:1])
+}
+
+func dump(label string, slice []string) {
+	fmt.Printf("%v: length %v, capacity %v\n", label, len(slice), cap(slice))
+	fmt.Println(slice)
+}
+
+```
+
+```powershell
+$ go run capacity.go 
+operators: length 2, capacity 2
+[Shamare Suzuran]
+operators[:1]: length 1, capacity 2
+[Shamare]
+```
+
+#### 限制新建切片容量
+
+```go
+operators := [...]string{"Shamare", "Suzuran"}
+// 每次增加容量时只会增加 1 个容量
+slice := operators[0:2:1]
+```
+
+### 使用 make 函数预置切片
+
+可以防止多余的内存消耗
+
+```go
+// 长度为 0，容量为 10
+operators := make([]string, 0, 10)
+```
+
+## map
+
+- map 在传递时不会创建副本
+- 除非使用复合字面值初始化 map，否則必须使用 make 函数分配空间。
+
+### 声明 map
+
+```go
+// map[key]value
+// 可以使用复合字面值，即直接加大括号赋值
+map[string]int
+```
+
+### 向 map 赋值
+
+```go
+height := map[string]int{"Shamare": 138}
+height["Suzuran"] = 137
+```
+
+### 判断值是否存在
+
+```go
+if operator, exist := height["Suzuran"]; exist {
+    fmt.Println("exist")
+} else {
+    fmt.Println("not exist")
+}
+```
+
+### 删除 map 中的项目
+
+```go
+// delete(map, key)
+delete(height, "Suzuran")
+```
+
+### 计数器案例
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	supporter := "Supporter"
+	medic := "Medic"
+
+	operators := map[string]string{
+		"Shamare":    supporter,
+		"Suzuran":    supporter,
+		"Honeyberry": medic,
+	}
+
+	// 创建一个计数器
+	classCount := make(map[string]int)
+
+	for _, class := range operators {
+		// 遇到相同的 class 就会叠加
+		classCount[class]++
+	}
+
+	// 遍历计数器
+	for class, number := range classCount {
+		fmt.Printf("%v: %v\n", class, number)
+	}
+}
+
+
+```
+
+```powershell
+$ go run count.go 
+Medic: 1
+Supporter: 2
+```
+
+## 结构类型
+
+
