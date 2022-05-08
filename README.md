@@ -1097,8 +1097,149 @@ $ go run main.go
 Shamare
 ```
 
-## 指针
+## 指针（pointer）
 
 - `&` 是地址操作符，通过 `&` 可以获取变量的内存地址。
   - 无法获得字符串、数值、布尔值的字面值的地址。
 - `*` 可以解引用，提供内存地址指向的值。
+  - 放在类型前表示声明指针类型。
+- go 中不允许指针运算。
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	operator := "Shamare"
+	name := &operator
+	fmt.Println(name)
+	fmt.Println(*name)
+
+	// 解引用也可以直接更改所引用的地址中的值
+	*name = "Suzuran"
+	fmt.Println(operator)
+
+	type class struct {
+		typeName string
+	}
+
+	// `&` 可以直接用在复合字面量之前
+	_class := &class{typeName: "Supporter"}
+	// 访问字段和数组时，解引用不是必须的
+	_class.typeName = "medic"
+	fmt.Printf("%+v\n", _class)
+}
+
+```
+
+```powershell
+$ go run main.go 
+0xc00006a250
+Shamare
+Suzuran
+&{typeName:medic}
+```
+
+### 隐式指针
+
+- map 在被赋值或传递时不创建副本。
+- slice 在指向数组元素时也使用了指针。
+
+## 错误处理
+
+- 函数在返回错误时，最后的一个返回值应用来表示错误。
+- 调用函数后，应立即检查是否发生错误。
+  - 如果没有错误发生，应返回值为 `nil` 的错误。
+- 实现 `error` 接口中的 `Error()` 方法就可以自定义错误类型。
+  - 自定义错误的名字应该以 `Error` 结尾。
+
+```go
+package main
+
+import (
+	"fmt"
+	"io"
+	"os"
+)
+
+func main() {
+	exception := writeFile("shamare")
+
+	if exception != nil {
+		fmt.Println(exception)
+		os.Exit(1)
+	}
+}
+
+type safeWriter struct {
+	write     io.Writer
+	exception error
+}
+
+func (_safeWriter safeWriter) writeln(text string) {
+	if _safeWriter.exception != nil {
+		return
+	}
+
+	// 每次错误发生时更新结构体中的错误
+	_, _safeWriter.exception = fmt.Fprintln(_safeWriter.write, text)
+}
+
+func writeFile(fileName string) error {
+	file, exception := os.Create(fileName)
+	// 使用 defer 关键字，可以确保 deferred 的动作在函数返回前执行。
+	// 即不用每个返回文前都添加相同的操作。
+	defer file.Close()
+
+	if exception != nil {
+		return exception
+	}
+
+	_safeWriter := safeWriter{write: file}
+	_safeWriter.writeln("Shamare is a supporter.")
+	_safeWriter.writeln("Suzuran is a supporter too.")
+
+	return _safeWriter.exception
+}
+
+```
+
+### 其他语言中的异常与 go 的错误值的比较
+
+- 其他语言中的异常如果没有人捕获，会一直冒泡直到栈的顶部。所以错误处理本身是可选的。
+- go 语言中除非开发者有意忽略，否则不能不处理错误。
+
+### 创建 panic
+
+```go
+// 参数可以是任意类型
+panic("some text")
+```
+
+#### 使用 recover 保证发生 panic 程序也能正常运行结束
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	// 被 defer 的内容会在函数返回前执行
+	defer func() {
+		_panic := recover()
+
+		if _panic != nil {
+			fmt.Println(_panic)
+		}
+	}()
+
+	panic("panic happened!")
+}
+
+```
+
+```powershell
+$ go run recover.go 
+panic happened!
+```
