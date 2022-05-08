@@ -1243,3 +1243,171 @@ func main() {
 $ go run recover.go 
 panic happened!
 ```
+
+## 并发（Concurrent Calculation）
+
+### goroutine
+
+- go 语言中，独立的任务叫作 goroutine。
+- 在任意调用前使用 `go` 关键字即可启用 goroutine。
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	go shamareAttack()
+	suzuranAttack()
+}
+
+func shamareAttack() {
+	for i := 0; i < 2; i++ {
+		fmt.Println(i+1, "Shamare attacked.")
+		time.Sleep(time.Second)
+	}
+}
+
+func suzuranAttack() {
+	for i := 0; i < 3; i++ {
+		fmt.Println(i+1, "Suzuran attacked.")
+		time.Sleep(time.Second)
+	}
+}
+
+```
+
+```powershell
+$ go run main.go 
+1 Suzuran attacked.
+1 Shamare attacked.
+2 Shamare attacked.
+2 Suzuran attacked.
+3 Suzuran attacked.
+```
+
+### 通道
+
+- 使用通道可以在多个 goroutine 之间安全地传值。
+- 往通道发送消息和从通道中接收消息都会阻塞代码的运行。
+
+#### 创建通道
+
+```go
+_channel := make(chan int)
+```
+
+```go
+// 向通道发送值
+_channel <- 99
+// 从通道接收值
+temp := <- _channel
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	channelShamare := make(chan string)
+	channelSuzuran := make(chan string)
+	var count int
+
+	go shamareAttack(channelShamare)
+	go suzuranAttack(channelSuzuran)
+
+	for {
+		// 使用 select 执行未被阻塞的通道
+		select {
+		case text, opening := <-channelShamare:
+			if !opening {
+				return
+			}
+
+			fmt.Println(text)
+			count++
+
+		case text, opening := <-channelSuzuran:
+			if !opening {
+				return
+			}
+
+			fmt.Println(text)
+			count++
+		}
+
+		fmt.Printf("Attaced %v times.\n", count)
+	}
+
+}
+
+func shamareAttack(channel chan string) {
+	text := "Shamare attacked."
+
+	for i := 0; i < 3; i++ {
+		channel <- text
+		time.Sleep(time.Second)
+	}
+
+	// 使用 close 关闭通道以避免阻塞死锁
+	close(channel)
+}
+
+func suzuranAttack(channel chan string) {
+	text := "Suzuran attacked."
+
+	for i := 0; i < 5; i++ {
+		channel <- text
+		time.Sleep(time.Millisecond * 500)
+	}
+
+	close(channel)
+}
+
+```
+
+```powershell
+$ go run channel.go 
+Shamare attacked.
+Attaced 1 times.
+Suzuran attacked.
+Attaced 2 times.
+Suzuran attacked.
+Attaced 3 times.
+Shamare attacked.
+Attaced 4 times.
+Suzuran attacked.
+Attaced 5 times.
+Suzuran attacked.
+Attaced 6 times.
+Shamare attacked.
+Attaced 7 times.
+Suzuran attacked.
+Attaced 8 times.
+```
+
+### 互斥锁（mutex）
+
+阻止复数 goroutine 在同一时间操作相同的东西。
+
+```go
+package main
+
+import "sync"
+
+// 声明互斥锁
+var mutex sync.Mutex
+
+func main() {
+	mutex.Lock()
+	defer mutex.Unlock()
+}
+
+```
