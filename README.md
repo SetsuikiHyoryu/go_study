@@ -4,6 +4,10 @@
 
 [Go语言编程快速入门（Golang）（完结）](https://www.bilibili.com/video/BV1fD4y1m7TD)
 
+## 远程仓库
+
+<https://github.com/SetsuikiHyoryu/go_study>
+
 ## 环境搭建
 
 ### 官网
